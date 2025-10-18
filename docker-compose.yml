@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  captioning-sidecar:
+    image: gyoridavid/short-video-maker:latest
+    container_name: captioning-sidecar
+    ports:
+      - "3123:3123"
+    restart: unless-stopped
+
+  app:
+    build: .
+    image: talktoon-app:latest
+    container_name: talktoon-app
+    env_file:
+      - ./.env
+    volumes:
+      - ./assets:/app/assets:ro
+      - ./config:/app/config:ro
+      - ./data:/app/data
+      - ./orchestration/scheduler:/app/orchestration/scheduler:ro
+      - ./scripts:/app/scripts:ro
+    depends_on:
+      - captioning-sidecar
+    restart: unless-stopped

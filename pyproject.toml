@@ -1,0 +1,14 @@
+[project]
+name = "talktoon"
+version = "0.1.0"
+description = "Automated Character Explainer Shorts pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+# uv will manage the virtual environment and dependencies defined in this file.
+# Add dependencies under [project] -> dependencies when ready.
