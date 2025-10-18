@@ -2,8 +2,12 @@
 name = "talktoon"
 version = "0.1.0"
 description = "Automated Character Explainer Shorts pipeline"
-readme = "README.md"
 requires-python = ">=3.10"
+dependencies = [
+    "openai>=2.5.0",
+    "pydantic>=2.12.3",
+    "pyyaml>=6.0.3",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -12,3 +16,14 @@ build-backend = "setuptools.build_meta"
 [tool.uv]
 # uv will manage the virtual environment and dependencies defined in this file.
 # Add dependencies under [project] -> dependencies when ready.
+
+# Prevent packaging of the repository (no installable packages yet)
+[tool.setuptools]
+packages = []
+
+[dependency-groups]
+dev = [
+    "black>=25.9.0",
+    "pytest>=8.4.2",
+    "ruff>=0.14.1",
+]

@@ -20,6 +20,7 @@ services:
       - ./data:/app/data
       - ./orchestration/scheduler:/app/orchestration/scheduler:ro
       - ./scripts:/app/scripts:ro
+      - ./clients:/app/clients:ro
     depends_on:
       - captioning-sidecar
     restart: unless-stopped

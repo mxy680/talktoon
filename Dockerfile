@@ -42,6 +42,12 @@ RUN pip install --no-cache-dir uv
 # Copy project metadata for dependency resolution (deps will be added later)
 COPY pyproject.toml ./
 
+# Install Python runtime dependencies for the app
+RUN pip install --no-cache-dir \
+    pyyaml \
+    pydantic \
+    openai
+
 # Install Playwright browsers (Chromium) and deps
 RUN pip install --no-cache-dir playwright && \
     python -m playwright install --with-deps chromium

@@ -1,2 +1,2 @@
 # Supercronic schedule for the app container
-* * * * * /usr/local/bin/python /app/scripts/run.py
+* * * * * cd /app && /usr/local/bin/python -m scripts.run
