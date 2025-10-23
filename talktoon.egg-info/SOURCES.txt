@@ -1,6 +1,0 @@
-pyproject.toml
-talktoon.egg-info/PKG-INFO
-talktoon.egg-info/SOURCES.txt
-talktoon.egg-info/dependency_links.txt
-talktoon.egg-info/requires.txt
-talktoon.egg-info/top_level.txt

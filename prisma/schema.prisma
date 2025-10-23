@@ -1,0 +1,109 @@
+// Prisma schema for Neon (PostgreSQL)
+// Generator for Python Prisma client
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  YOUTUBE
+  TIKTOK
+  INSTAGRAM
+}
+
+enum VideoStatus {
+  DRAFT
+  RENDERED
+  POSTED
+  FAILED
+}
+
+model Topic {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  videos    Video[]
+}
+
+model Account {
+  id          String    @id @default(cuid())
+  name        String                      // e.g. "Science", "Computer Science", "Math"
+  category    String?
+  displayName String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  identities  PlatformIdentity[]
+  videos      Video[]                    // videos produced under this account/brand
+}
+
+model Video {
+  id          String      @id @default(cuid())
+  title       String
+  status      VideoStatus @default(DRAFT)
+  durationSec Int?
+  // Overall video no longer tied to a single platform
+
+  // Relations
+  topic    Topic?   @relation(fields: [topicId], references: [id])
+  topicId  String?
+
+  // Owning account/brand (required)
+  account   Account  @relation(fields: [accountId], references: [id])
+  accountId String
+
+  // Per-platform postings
+  postings  VideoPosting[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([accountId, status])
+}
+
+// A concrete identity on a specific platform that belongs to an Account
+model PlatformIdentity {
+  id          String    @id @default(cuid())
+  platform    Platform
+  handle      String
+  displayName String?
+
+  account   Account  @relation(fields: [accountId], references: [id])
+  accountId String
+
+  postings  VideoPosting[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([platform, handle])
+}
+
+// A posting of a Video to a specific PlatformIdentity (per-platform state and links)
+model VideoPosting {
+  id         String       @id @default(cuid())
+  status     VideoStatus  @default(DRAFT)
+  videoUrl   String?
+  postedAt   DateTime?
+
+  video      Video            @relation(fields: [videoId], references: [id])
+  videoId    String
+
+  identity   PlatformIdentity @relation(fields: [identityId], references: [id])
+  identityId String
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([videoId, identityId])
+  @@index([status])
+}

@@ -5,9 +5,7 @@
       "label": "Dev",
       "type": "shell",
       "command": "${workspaceFolder}/.venv/bin/python",
-      "args": [
-        "scripts/run.py"
-      ],
+      "args": ["-m", "scripts.run"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -20,6 +18,50 @@
         "panel": "dedicated",
         "clear": true
       },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "build", "app"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Up",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "up"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["Build"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Generate",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "-m",
+        "prisma",
+        "generate",
+        "--schema",
+        "prisma/schema.prisma"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": { "PATH": "${workspaceFolder}/.venv/bin:${env:PATH}" }
+      },
+      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     }
   ]

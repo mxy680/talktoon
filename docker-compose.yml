@@ -1,26 +1,33 @@
-version: "3.8"
-
 services:
-  captioning-sidecar:
-    image: gyoridavid/short-video-maker:latest
-    container_name: captioning-sidecar
-    ports:
-      - "3123:3123"
-    restart: unless-stopped
-
-  app:
+  app-base: &app-base
     build: .
     image: talktoon-app:latest
-    container_name: talktoon-app
     env_file:
       - ./.env
+    restart: unless-stopped
+
+  app-astronomy:
+    <<: *app-base
+    container_name: talktoon-astronomy
+    environment:
+      - ACCOUNT_NAME=Astronomy
     volumes:
       - ./assets:/app/assets:ro
       - ./config:/app/config:ro
-      - ./data:/app/data
+      - ./data/astronomy:/app/data
       - ./orchestration/scheduler:/app/orchestration/scheduler:ro
       - ./scripts:/app/scripts:ro
       - ./clients:/app/clients:ro
-    depends_on:
-      - captioning-sidecar
-    restart: unless-stopped
+
+  app-math:
+    <<: *app-base
+    container_name: talktoon-math
+    environment:
+      - ACCOUNT_NAME=Math
+    volumes:
+      - ./assets:/app/assets:ro
+      - ./config:/app/config:ro
+      - ./data/math:/app/data
+      - ./orchestration/scheduler:/app/orchestration/scheduler:ro
+      - ./scripts:/app/scripts:ro
+      - ./clients:/app/clients:ro

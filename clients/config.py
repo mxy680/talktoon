@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError
@@ -26,36 +26,10 @@ class Captioning(BaseModel):
     api_base: str = "http://captioning-sidecar:3123"
     style: Optional[str] = None
 
-
-class OverlayCharacter(BaseModel):
-    file: str
-    x: int = 0
-    y: int = 0
-    scale: float = 1.0
-
-
-class Overlay(BaseModel):
-    characters: List[OverlayCharacter] = []
-    background: Optional[dict] = None
-
-
-class PostingYouTube(BaseModel):
-    visibility: str = "unlisted"
-    tags: List[str] = []
-
-
-class Posting(BaseModel):
-    youtube: PostingYouTube = PostingYouTube()
-    tiktok: dict = {}
-    instagram: dict = {}
-
-
 class AppConfig(BaseModel):
     models: Models
     video: Video = Video()
     captioning: Captioning = Captioning()
-    overlay: Overlay = Overlay()
-    posting: Posting = Posting()
 
 
 def load_config(path: str | os.PathLike = "config/config.yaml") -> AppConfig:
