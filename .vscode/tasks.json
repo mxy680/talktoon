@@ -24,7 +24,7 @@
       "label": "Build",
       "type": "shell",
       "command": "docker",
-      "args": ["compose", "build", "app"],
+      "args": ["compose", "build"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -34,7 +34,7 @@
       "label": "Up",
       "type": "shell",
       "command": "docker",
-      "args": ["compose", "up"],
+      "args": ["compose", "up", "-d"],
       "options": {
         "cwd": "${workspaceFolder}"
       },

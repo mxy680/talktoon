@@ -31,17 +31,17 @@ model Topic {
   updatedAt DateTime @updatedAt
 
   videos    Video[]
+  accounts  Account[]
 }
 
 model Account {
   id          String    @id @default(cuid())
-  name        String                      // e.g. "Science", "Computer Science", "Math"
-  category    String?
-  displayName String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   // Relations
+  topic     Topic   @relation(fields: [topicId], references: [id])
+  topicId   String  @unique
   identities  PlatformIdentity[]
   videos      Video[]                    // videos produced under this account/brand
 }

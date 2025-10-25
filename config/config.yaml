@@ -1,42 +1,16 @@
 # Core models
 models:
   script_model: gpt-5
-  tts_model: tts-1
-  tts_voice: alloy
 
-# Video settings
-video:
-  width: 1080
-  height: 1920
-  fps: 30
-  music_db: -16  # background music volume offset (dB); optional
-
-# Captioning via short-video-maker sidecar
-captioning:
-  mode: rendered            # rendered | srt
-  api_base: http://captioning-sidecar:3123
-  style: default            # placeholder; use sidecar defaults for now
-
-# Overlay positions (placeholders)
-overlay:
-  characters:
-    - file: assets/characters/char_a.png
-      x: 100
-      y: 1200
-      scale: 1.0
-    - file: assets/characters/char_b.png
-      x: 700
-      y: 1200
-      scale: 1.0
-  background:
-    file: assets/backgrounds/loop.mp4
-
-# Posting configuration (placeholders)
-posting:
-  youtube:
-    visibility: unlisted
-    tags: ["explainer", "shorts"]
-  tiktok:
-    enabled: false
-  instagram:
-    enabled: false
+# Per-account settings (selected via TOPIC env)
+accounts:
+  math:
+    script_prompt: >-
+      Write a fast-paced, witty 2-character dialogue between Peter and Stewie about a math concept.
+      120-160 words, punchy back-and-forth, playful jabs, simple analogies, one clear takeaway,
+      and end with a hook to learn more.
+    characters:
+      - id: peter_griffin
+        name: Peter
+      - id: stewie_griffin
+        name: Stewie

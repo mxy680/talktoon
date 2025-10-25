@@ -4,30 +4,17 @@ services:
     image: talktoon-app:latest
     env_file:
       - ./.env
-    restart: unless-stopped
-
-  app-astronomy:
-    <<: *app-base
-    container_name: talktoon-astronomy
-    environment:
-      - ACCOUNT_NAME=Astronomy
     volumes:
       - ./assets:/app/assets:ro
       - ./config:/app/config:ro
-      - ./data/astronomy:/app/data
+      - ./data:/app/data
       - ./orchestration/scheduler:/app/orchestration/scheduler:ro
       - ./scripts:/app/scripts:ro
       - ./clients:/app/clients:ro
+    restart: unless-stopped
 
   app-math:
     <<: *app-base
     container_name: talktoon-math
     environment:
-      - ACCOUNT_NAME=Math
-    volumes:
-      - ./assets:/app/assets:ro
-      - ./config:/app/config:ro
-      - ./data/math:/app/data
-      - ./orchestration/scheduler:/app/orchestration/scheduler:ro
-      - ./scripts:/app/scripts:ro
-      - ./clients:/app/clients:ro
+      - TOPIC=Math
