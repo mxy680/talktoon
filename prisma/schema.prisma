@@ -26,12 +26,11 @@ enum VideoStatus {
 model Topic {
   id        String   @id @default(cuid())
   title     String   @unique
-  used      Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   videos    Video[]
-  accounts  Account[]
+  account   Account?
 }
 
 model Account {
@@ -44,6 +43,7 @@ model Account {
   topicId   String  @unique
   identities  PlatformIdentity[]
   videos      Video[]                    // videos produced under this account/brand
+  subtopics   Subtopic[]
 }
 
 model Video {
@@ -57,6 +57,10 @@ model Video {
   topic    Topic?   @relation(fields: [topicId], references: [id])
   topicId  String?
 
+  // One-to-one Subtopic relation (each Video has exactly one Subtopic; each Subtopic belongs to at most one Video)
+  subtopic   Subtopic @relation(fields: [subtopicId], references: [id])
+  subtopicId String   @unique
+
   // Owning account/brand (required)
   account   Account  @relation(fields: [accountId], references: [id])
   accountId String
@@ -68,6 +72,22 @@ model Video {
   updatedAt DateTime  @updatedAt
 
   @@index([accountId, status])
+}
+
+// Subtopic: per-video topic
+model Subtopic {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Back relation to Video (one-to-one)
+  video     Video?
+
+  // Owning Account (one Account has many Subtopics)
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String
 }
 
 // A concrete identity on a specific platform that belongs to an Account

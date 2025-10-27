@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 import hashlib
 import json
-import logging
 
 from pydantic import BaseModel
 from models import DialogueMessage, DialogueScript
@@ -20,7 +19,6 @@ class OpenAISettings:
 
 class OpenAIClient:
     def __init__(self, settings: Optional[OpenAISettings] = None) -> None:
-        self._log = logging.getLogger("openai_client")
         if settings is None:
             api_key = os.getenv("OPENAI_API_KEY")
             if not api_key:
@@ -31,7 +29,6 @@ class OpenAIClient:
         self._client = None
         # Optional Redis cache (local dev only)
         self._cache = self._maybe_init_cache()
-        self._log.debug("initialized OpenAIClient; cache=%s base_url=%s", bool(self._cache), self.settings.base_url)
 
     def _ensure_client(self):
         if self._client is None:
@@ -58,7 +55,6 @@ class OpenAIClient:
         """Initialize Redis cache for local dev only; return client or None."""
         try:
             if self._running_in_container():
-                self._log.info("container detected; redis cache disabled")
                 return None
             redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
             import redis  # type: ignore
@@ -67,21 +63,19 @@ class OpenAIClient:
             # Smoke test ping (non-fatal)
             try:
                 client.ping()
-                self._log.info("redis cache available at %s", redis_url)
             except Exception:
-                self._log.warning("redis ping failed; disabling cache", exc_info=False)
                 return None
             return client
         except Exception:
-            self._log.info("redis import/init failed; disabling cache", exc_info=False)
             return None
 
-    def _cache_key(self, *, model: str, topic: str, script_prompt: str, characters: List[Dict[str, Any]] | None) -> str:
+    def _cache_key(self, *, model: str, topic: str, script_prompt: str, characters: List[Dict[str, Any]] | None, subtopic: str | None = None) -> str:
         payload = {
             "model": model,
             "topic": topic,
             "script_prompt": script_prompt,
             "characters": characters or [],
+            "subtopic": subtopic or "",
         }
         digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
         return f"openai:dialogue:{digest}"
@@ -93,6 +87,7 @@ class OpenAIClient:
         model: str,
         script_prompt: str,
         characters: List[Dict[str, Any]] | None = None,
+        subtopic: str | None = None,
     ) -> List[Dict[str, str]]:
         """Generate a short dialogue script as structured outputs (list of messages)."""
         self._ensure_client()
@@ -101,7 +96,7 @@ class OpenAIClient:
         cache_hit: Optional[str] = None
         cache_key = None
         if self._cache is not None:
-            cache_key = self._cache_key(model=model, topic=topic, script_prompt=script_prompt, characters=characters)
+            cache_key = self._cache_key(model=model, topic=topic, script_prompt=script_prompt, characters=characters, subtopic=subtopic)
             try:
                 cache_hit = self._cache.get(cache_key)
             except Exception:
@@ -110,13 +105,9 @@ class OpenAIClient:
             try:
                 data = json.loads(cache_hit)
                 if isinstance(data, list):
-                    self._log.info("cache hit for model=%s topic=%s", model, topic)
                     return data
             except Exception:
                 pass
-        else:
-            if self._cache is not None:
-                self._log.info("cache miss for model=%s topic=%s", model, topic)
 
         char_specs = []
         for c in (characters or []):
@@ -129,15 +120,16 @@ class OpenAIClient:
             "You write concise, high-energy scripts for short social videos. "
             "Return ONLY structured outputs."
         )
+        subtopic_line = f"Subtopic: {subtopic}\n\n" if subtopic else ""
         user = (
             f"Topic: {topic}\n\n"
+            + subtopic_line +
             f"Direction: {script_prompt}\n\n"
             f"Characters:\n{char_block}\n\n"
             "Output should be a sequence of messages in a two-person dialogue."
         )
 
         # Use Responses API with Pydantic parsing
-        self._log.info("calling OpenAI Responses.parse model=%s", model)
         response = self._client.responses.parse(
             model=model,
             input=[
@@ -148,14 +140,57 @@ class OpenAIClient:
         )
         parsed = response.output_parsed  # type: ignore
         if not parsed or not getattr(parsed, "messages", None):
-            self._log.warning("no structured messages returned; parsed=%s", type(parsed).__name__ if parsed else None)
             return []
         messages = [{"character": m.character, "text": m.text} for m in parsed.messages]
         # Cache set (local dev only)
         if self._cache is not None and cache_key is not None:
             try:
                 self._cache.setex(cache_key, int(os.getenv("OPENAI_CACHE_TTL", "3600")), json.dumps(messages))
-                self._log.debug("cached response key=%s ttl=%s", cache_key, os.getenv("OPENAI_CACHE_TTL", "3600"))
             except Exception:
-                self._log.warning("failed to cache response", exc_info=False)
+                pass
         return messages
+
+    class SubtopicList(BaseModel):
+        titles: List[str]
+
+    def generate_subtopics(
+        self,
+        *,
+        topic: str,
+        model: str,
+        existing_titles: List[str] | None = None,
+        count: int = 10,
+    ) -> List[str]:
+        """Generate up to `count` new subtopic titles avoiding duplicates in `existing_titles`."""
+        self._ensure_client()
+        existing_titles = existing_titles or []
+        system = (
+            "You propose concise, distinct subtopic titles suitable for short-form educational videos."
+        )
+        user = (
+            f"Parent Topic: {topic}\n\n"
+            f"Already used subtopics (avoid duplicates, case-insensitive):\n"
+            + "\n".join(f"- {t}" for t in existing_titles)
+            + "\n\n"
+            f"Generate {count} new unique subtopic titles."
+        )
+        response = self._client.responses.parse(
+            model=model,
+            input=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            text_format=OpenAIClient.SubtopicList,
+        )
+        parsed = response.output_parsed  # type: ignore
+        if not parsed or not getattr(parsed, "titles", None):
+            return []
+        # Filter out duplicates against provided list (case-insensitive)
+        existing_lower = {t.lower().strip() for t in existing_titles}
+        out: List[str] = []
+        for t in parsed.titles:
+            k = t.lower().strip()
+            if k and k not in existing_lower:
+                existing_lower.add(k)
+                out.append(t.strip())
+        return out[:count]
