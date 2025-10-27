@@ -46,7 +46,8 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir \
     pyyaml \
     pydantic \
-    openai
+    openai \
+    prisma
 
 # Install Playwright browsers (Chromium) and deps
 RUN pip install --no-cache-dir playwright && \
@@ -69,5 +70,6 @@ COPY orchestration/scheduler/crontab /app/orchestration/scheduler/crontab
 # Environment file mounted at runtime
 # .env should be provided via docker-compose/env_file or --env-file
 
-# Use supercronic as PID 1 to execute schedule
-CMD ["/usr/local/bin/supercronic", "/app/orchestration/scheduler/crontab"]
+# Generate Prisma client at container start (schema must be mounted at /app/prisma)
+# then start supercronic
+CMD ["sh", "-lc", "python -m prisma generate --schema prisma/schema.prisma || true; exec /usr/local/bin/supercronic /app/orchestration/scheduler/crontab"]

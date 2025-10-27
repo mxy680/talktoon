@@ -7,9 +7,11 @@ services:
     volumes:
       - ./assets:/app/assets:ro
       - ./config:/app/config:ro
+      - ./prisma:/app/prisma:ro
       - ./data:/app/data
       - ./orchestration/scheduler:/app/orchestration/scheduler:ro
       - ./scripts:/app/scripts:ro
+      - ./utils:/app/utils:ro
       - ./clients:/app/clients:ro
     restart: unless-stopped
 

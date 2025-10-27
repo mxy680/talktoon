@@ -1,0 +1,55 @@
+[
+  {
+    "character": "Peter",
+    "text": "Stewie, what's exponential? Sounds like a fancy sandwich."
+  },
+  {
+    "character": "Stewie",
+    "text": "Please, you walking meatball; exponential means doubling, fast."
+  },
+  {
+    "character": "Peter",
+    "text": "Doubling like my snacks during commercials?"
+  },
+  {
+    "character": "Stewie",
+    "text": "Exactly—1, 2, 4, 8—soon your pantry files a noise complaint."
+  },
+  {
+    "character": "Peter",
+    "text": "Linear's like steps on a staircase, right? One at a time."
+  },
+  {
+    "character": "Stewie",
+    "text": "Yes, exponential is an elevator rocketing past the roof."
+  },
+  { "character": "Peter", "text": "How fast we talking?" },
+  {
+    "character": "Stewie",
+    "text": "Fold a paper 42 times—thickness reaches the moon. Ish."
+  },
+  { "character": "Peter", "text": "My hands can’t even fold my laundry once." },
+  {
+    "character": "Stewie",
+    "text": "Tragic. Also why compound interest loves patient people."
+  },
+  { "character": "Peter", "text": "So small starts, big boom?" },
+  {
+    "character": "Stewie",
+    "text": "Bingo. Tiny doubles turn into tidal waves."
+  },
+  { "character": "Peter", "text": "Then why do graphs start flat?" },
+  {
+    "character": "Stewie",
+    "text": "Early doubles look boring; then kaboom—the curve goes vertical."
+  },
+  { "character": "Peter", "text": "Takeaway?" },
+  {
+    "character": "Stewie",
+    "text": "Don’t fear small beginnings—steady doubling outruns big single steps."
+  },
+  {
+    "character": "Peter",
+    "text": "Alright, professor—show me more math that cheats time?"
+  }
+]
