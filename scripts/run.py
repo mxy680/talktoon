@@ -3,6 +3,7 @@ import os
 import asyncio
 from clients.db import DB
 from utils.runtime import load_config, get_account_settings, init_openai
+from clients.video_editor import VideoEditor
 
 try:
     from dotenv import load_dotenv  # type: ignore
@@ -97,6 +98,14 @@ async def main_async() -> None:
                 )
             except Exception as e:
                 print(f"Failed to create video for subtopic: {e}")
+
+        # Start video editing session
+        try:
+            editor = VideoEditor()
+            session = editor.begin(topic=topic, subtopic=chosen_subtopic_title, script=script if isinstance(script, list) else [])
+            print(f"video_edit_session_ready topic={session.get('topic')} subtopic={session.get('subtopic')} lines={session.get('line_count')}")
+        except Exception as e:
+            print(f"Failed to start video editing session: {e}")
 
     await db.disconnect()
 

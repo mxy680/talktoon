@@ -20,3 +20,63 @@ services:
     container_name: talktoon-math
     environment:
       - TOPIC=Math
+      - REDIS_URL=redis://redis:6379/0
+      - TTS_BASE_URL=http://tts:7861
+    depends_on:
+      - redis
+      - tts
+
+  tts:
+    build: ./services/tts
+    image: talktoon-tts:latest
+    container_name: tts
+    restart: unless-stopped
+    ports:
+      - "7861:7861"
+    volumes:
+      - ./services/tts/profiles:/app/profiles
+      - ./services/tts/hf_cache:/cache/huggingface
+
+  jobs-api:
+    build: ./services/jobs
+    image: talktoon-jobs-api:latest
+    container_name: jobs-api
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+      - tts
+    ports:
+      - "7871:7871"
+    volumes:
+      - ./data:/app/data
+
+  jobs-worker:
+    build: ./services/jobs
+    image: talktoon-jobs-worker:latest
+    container_name: jobs-worker
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - TTS_BASE_URL=http://tts:7861
+      - AUDIO_DIR=/app/data/audio
+    depends_on:
+      - redis
+      - tts
+    command: ["rq", "worker", "-u", "redis://redis:6379/0", "tts"]
+    volumes:
+      - ./data:/app/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: talktoon-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
