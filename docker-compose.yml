@@ -61,9 +61,16 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - TTS_BASE_URL=http://tts:7861
       - AUDIO_DIR=/app/data/audio
+      - S3_ENDPOINT=http://minio:9000
+      - S3_BUCKET=media
+      - S3_REGION=us-east-1
+      - S3_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minioadmin}
+      - S3_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - S3_FORCE_PATH_STYLE=true
     depends_on:
       - redis
       - tts
+      - minio
     command: ["rq", "worker", "-u", "redis://redis:6379/0", "tts"]
     volumes:
       - ./data:/app/data
@@ -78,5 +85,32 @@ services:
     volumes:
       - redis_data:/data
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  minio-setup:
+    image: minio/mc:latest
+    container_name: minio-setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "\
+      /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} && \
+      /usr/bin/mc mb -p local/media || true && \
+      /usr/bin/mc anonymous set download local/media || true\
+      "
+
 volumes:
   redis_data:
+  minio_data:

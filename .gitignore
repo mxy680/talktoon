@@ -19,6 +19,8 @@ __pycache__/
 
 # Data & Outputs
 /data/out/
+/data/audio/
+out.wav
 *.log
 
 # OS
@@ -27,3 +29,5 @@ Thumbs.db
 
 # TTS
 /tts
+services/tts/hf_cache/
+services/tts/profiles/*.wav
